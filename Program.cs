@@ -20,11 +20,11 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddHostedService<svc.Edge>();
 builder.Services.AddHostedService<svc.Player>();
 
-
+/*
 builder.Services
 		.AddAuthentication()
 		.AddScheme<AuthenticationSchemeOptions, BasicAuthHandler>("BasicAuth", options => { });
-
+*/
 
 builder.Services.AddAuthorization(options =>
 {

@@ -6,7 +6,6 @@ namespace game
 	public class AdminController : Controller
 	{
 		// GET: AdminController
-		[BasicAuth]
 		public ActionResult Index()
 		{
 			return View();

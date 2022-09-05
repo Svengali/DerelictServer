@@ -22,10 +22,11 @@ namespace game
     {
       services.AddRazorPages();
 
+			/*
 			services
 					.AddAuthentication()
 					.AddScheme<AuthenticationSchemeOptions, BasicAuthHandler>("BasicAuth", options => { });
-
+			*/
 
 			services.AddAuthorization(options =>
 			{
