@@ -11,6 +11,12 @@ namespace game
 			return View();
 		}
 
+		public ActionResult Test()
+		{
+			return View();
+		}
+
+
 		// GET: AdminController/Details/5
 		public ActionResult Details(int id)
 		{

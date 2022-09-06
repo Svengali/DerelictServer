@@ -1,14 +1,29 @@
 
 
 
+using auth;
+
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 
 using svc;
 
+using System.Text.Json.Serialization;
+
+using WebApi.Helpers;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+builder.Services.AddCors();
+
+
+builder.Services.AddControllers().AddJsonOptions( x =>
+{
+	// serialize enums as strings in api responses (e.g. Role)
+	x.JsonSerializerOptions.Converters.Add( new JsonStringEnumConverter() );
+} );
 
 //builder.Services.AddControllers();
 builder.Services.AddControllersWithViews();
@@ -19,6 +34,13 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddHostedService<svc.Edge>();
 builder.Services.AddHostedService<svc.Player>();
+
+// configure DI for application services
+builder.Services.AddScoped<IJwtUtils, JwtUtils>();
+builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 /*
 builder.Services
@@ -75,9 +97,17 @@ app.UseAuthorization();
 
 app.UseMvcWithDefaultRoute();
 
-app.MapControllers();
 
 app.MapDefaultControllerRoute();
+
+app.MapControllers();
+
+// global error handler
+app.UseMiddleware<ErrorHandlerMiddleware>();
+
+// custom jwt auth middleware
+app.UseMiddleware<JwtMiddleware>();
+
 
 
 app.Use(async (context, next) =>
