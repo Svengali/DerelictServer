@@ -1,17 +1,16 @@
-namespace WebApi.Authorization;
+namespace auth;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using WebApi.Entities;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
 public class AuthorizeAttribute : Attribute, IAuthorizationFilter
 {
-    private readonly IList<Role> _roles;
+    private readonly IList<ent.Role> _roles;
 
-    public AuthorizeAttribute(params Role[] roles)
+    public AuthorizeAttribute(params ent.Role[] roles)
     {
-        _roles = roles ?? new Role[] { };
+        _roles = roles ?? new ent.Role[] { };
     }
 
     public void OnAuthorization(AuthorizationFilterContext context)
@@ -22,7 +21,7 @@ public class AuthorizeAttribute : Attribute, IAuthorizationFilter
             return;
 
         // authorization
-        var account = (Account)context.HttpContext.Items["Account"];
+        var account = (ent.Account)context.HttpContext.Items["Account"];
         if (account == null || (_roles.Any() && !_roles.Contains(account.Role)))
         {
             // not logged in or role not authorized

@@ -1,4 +1,4 @@
-namespace WebApi.Entities;
+namespace ent;
 
 public enum Role
 {

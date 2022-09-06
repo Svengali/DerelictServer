@@ -1,12 +1,10 @@
 ﻿namespace game;
 
 using Microsoft.AspNetCore.Mvc;
-using WebApi.Authorization;
-using WebApi.Entities;
 using WebApi.Models.Accounts;
 //using WebApi.Services;
 
-[Authorize]
+[auth.Authorize]
 [ApiController]
 [Route("[controller]")]
 public class AccountsController : BaseController
@@ -18,7 +16,7 @@ public class AccountsController : BaseController
         _accountService = accountService;
     }
 
-    [AllowAnonymous]
+    [auth.AllowAnonymous]
     [HttpPost("authenticate")]
     public ActionResult<AuthenticateResponse> Authenticate(AuthenticateRequest model)
     {
@@ -27,7 +25,7 @@ public class AccountsController : BaseController
         return Ok(response);
     }
 
-    [AllowAnonymous]
+    [auth.AllowAnonymous]
     [HttpPost("refresh-token")]
     public ActionResult<AuthenticateResponse> RefreshToken()
     {
@@ -47,14 +45,14 @@ public class AccountsController : BaseController
             return BadRequest(new { message = "Token is required" });
 
         // users can revoke their own tokens and admins can revoke any tokens
-        if (!Account.OwnsToken(token) && Account.Role != Role.Admin)
+        if (!Account.OwnsToken(token) && Account.Role != ent.Role.Admin)
             return Unauthorized(new { message = "Unauthorized" });
 
         _accountService.RevokeToken(token, ipAddress());
         return Ok(new { message = "Token revoked" });
     }
 
-    [AllowAnonymous]
+    [auth.AllowAnonymous]
     [HttpPost("register")]
     public IActionResult Register(RegisterRequest model)
     {
@@ -62,7 +60,7 @@ public class AccountsController : BaseController
         return Ok(new { message = "Registration successful, please check your email for verification instructions" });
     }
 
-    [AllowAnonymous]
+    [auth.AllowAnonymous]
     [HttpPost("verify-email")]
     public IActionResult VerifyEmail(VerifyEmailRequest model)
     {
@@ -70,7 +68,7 @@ public class AccountsController : BaseController
         return Ok(new { message = "Verification successful, you can now login" });
     }
 
-    [AllowAnonymous]
+    [auth.AllowAnonymous]
     [HttpPost("forgot-password")]
     public IActionResult ForgotPassword(ForgotPasswordRequest model)
     {
@@ -78,7 +76,7 @@ public class AccountsController : BaseController
         return Ok(new { message = "Please check your email for password reset instructions" });
     }
 
-    [AllowAnonymous]
+    [auth.AllowAnonymous]
     [HttpPost("validate-reset-token")]
     public IActionResult ValidateResetToken(ValidateResetTokenRequest model)
     {
@@ -86,7 +84,7 @@ public class AccountsController : BaseController
         return Ok(new { message = "Token is valid" });
     }
 
-    [AllowAnonymous]
+    [auth.AllowAnonymous]
     [HttpPost("reset-password")]
     public IActionResult ResetPassword(ResetPasswordRequest model)
     {
@@ -94,7 +92,7 @@ public class AccountsController : BaseController
         return Ok(new { message = "Password reset successful, you can now login" });
     }
 
-    [Authorize(Role.Admin)]
+    [auth.Authorize(ent.Role.Admin)]
     [HttpGet]
     public ActionResult<IEnumerable<AccountResponse>> GetAll()
     {
@@ -106,14 +104,14 @@ public class AccountsController : BaseController
     public ActionResult<AccountResponse> GetById(int id)
     {
         // users can get their own account and admins can get any account
-        if (id != Account.Id && Account.Role != Role.Admin)
+        if (id != Account.Id && Account.Role != ent.Role.Admin)
             return Unauthorized(new { message = "Unauthorized" });
 
         var account = _accountService.GetById(id);
         return Ok(account);
     }
 
-    [Authorize(Role.Admin)]
+    [auth.Authorize(ent.Role.Admin)]
     [HttpPost]
     public ActionResult<AccountResponse> Create(CreateRequest model)
     {
@@ -125,11 +123,11 @@ public class AccountsController : BaseController
     public ActionResult<AccountResponse> Update(int id, UpdateRequest model)
     {
         // users can update their own account and admins can update any account
-        if (id != Account.Id && Account.Role != Role.Admin)
+        if (id != Account.Id && Account.Role != ent.Role.Admin)
             return Unauthorized(new { message = "Unauthorized" });
 
         // only admins can update role
-        if (Account.Role != Role.Admin)
+        if (Account.Role != ent.Role.Admin)
             model.Role = null;
 
         var account = _accountService.Update(id, model);
@@ -140,7 +138,7 @@ public class AccountsController : BaseController
     public IActionResult Delete(int id)
     {
         // users can delete their own account and admins can delete any account
-        if (id != Account.Id && Account.Role != Role.Admin)
+        if (id != Account.Id && Account.Role != ent.Role.Admin)
             return Unauthorized(new { message = "Unauthorized" });
 
         _accountService.Delete(id);

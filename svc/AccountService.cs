@@ -12,8 +12,6 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-using WebApi.Authorization;
-using WebApi.Entities;
 using WebApi.Helpers;
 using WebApi.Models.Accounts;
 
@@ -37,14 +35,14 @@ public interface IAccountService
 public class AccountService : IAccountService
 {
 	//private readonly DataContext _context;
-	private readonly IJwtUtils _jwtUtils;
+	private readonly auth.IJwtUtils _jwtUtils;
 	//private readonly IMapper _mapper;
 	private readonly AppSettings _appSettings;
 	private readonly IEmailService _emailService;
 
 	public AccountService(
 			// PORT DataContext context,
-			IJwtUtils jwtUtils,
+			auth.IJwtUtils jwtUtils,
 			// PORTIMapper mapper,
 			IOptions<AppSettings> appSettings,
 			IEmailService emailService )
@@ -325,7 +323,7 @@ public class AccountService : IAccountService
 
 	// helper methods
 
-	private Account getAccount( int id )
+	private ent.Account getAccount( int id )
 	{
 		/* PORT
 		var account = _context.Accounts.Find(id);
@@ -336,7 +334,7 @@ public class AccountService : IAccountService
 		//*/
 	}
 
-	private Account getAccountByRefreshToken( string token )
+	private ent.Account getAccountByRefreshToken( string token )
 	{
 		/* PORT
 		var account = _context.Accounts.SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
@@ -347,7 +345,7 @@ public class AccountService : IAccountService
 		//*/
 	}
 
-	private Account getAccountByResetToken( string token )
+	private ent.Account getAccountByResetToken( string token )
 	{
 		/* PORT
 		var account = _context.Accounts.SingleOrDefault(x =>
@@ -359,7 +357,7 @@ public class AccountService : IAccountService
 		//*/
 	}
 
-	private string generateJwtToken( Account account )
+	private string generateJwtToken( ent.Account account )
 	{
 		/* PORT
 		var tokenHandler = new JwtSecurityTokenHandler();
@@ -411,7 +409,7 @@ public class AccountService : IAccountService
 		//*/
 	}
 
-	private RefreshToken rotateRefreshToken( RefreshToken refreshToken, string ipAddress )
+	private ent.RefreshToken rotateRefreshToken( ent.RefreshToken refreshToken, string ipAddress )
 	{
 		/* PORT
 		var newRefreshToken = _jwtUtils.GenerateRefreshToken(ipAddress);
@@ -419,7 +417,7 @@ public class AccountService : IAccountService
 		return newRefreshToken;
 	}
 
-	private void removeOldRefreshTokens( Account account )
+	private void removeOldRefreshTokens( ent.Account account )
 	{
 		/* PORT
 		account.RefreshTokens.RemoveAll( x =>
@@ -427,7 +425,7 @@ public class AccountService : IAccountService
 				x.Created.AddDays( _appSettings.RefreshTokenTTL ) <= DateTime.UtcNow );
 	}
 
-	private void revokeDescendantRefreshTokens( RefreshToken refreshToken, Account account, string ipAddress, string reason )
+	private void revokeDescendantRefreshTokens( ent.RefreshToken refreshToken, ent.Account account, string ipAddress, string reason )
 	{
 		/* PORT
 		// recursively traverse the refresh token chain and ensure all descendants are revoked
@@ -444,7 +442,7 @@ public class AccountService : IAccountService
 		//*/
 	}
 
-	private void revokeRefreshToken( RefreshToken token, string ipAddress, string reason = null, string replacedByToken = null )
+	private void revokeRefreshToken( ent.RefreshToken token, string ipAddress, string reason = null, string replacedByToken = null )
 	{
 		/* PORT
 		token.Revoked = DateTime.UtcNow;
@@ -456,7 +454,7 @@ public class AccountService : IAccountService
 		//*/
 	}
 
-	private void sendVerificationEmail( Account account, string origin )
+	private void sendVerificationEmail( ent.Account account, string origin )
 	{
 		/* PORT
 		string message;
@@ -509,7 +507,7 @@ public class AccountService : IAccountService
 		//*/
 	}
 
-	private void sendPasswordResetEmail( Account account, string origin )
+	private void sendPasswordResetEmail( ent.Account account, string origin )
 	{
 		/* PORT
 		string message;

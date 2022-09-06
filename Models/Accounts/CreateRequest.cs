@@ -1,7 +1,6 @@
 namespace WebApi.Models.Accounts;
 
 using System.ComponentModel.DataAnnotations;
-using WebApi.Entities;
 
 public class CreateRequest
 {
@@ -15,7 +14,7 @@ public class CreateRequest
     public string LastName { get; set; }
 
     [Required]
-    [EnumDataType(typeof(Role))]
+    [EnumDataType(typeof(ent.Role))]
     public string Role { get; set; }
 
     [Required]

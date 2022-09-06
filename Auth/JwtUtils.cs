@@ -1,4 +1,4 @@
-namespace WebApi.Authorization;
+namespace auth;
 
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -8,14 +8,14 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-using WebApi.Entities;
 using WebApi.Helpers;
+
 
 public interface IJwtUtils
 {
-	public string GenerateJwtToken( Account account );
+	public string GenerateJwtToken( ent.Account account );
 	public int? ValidateJwtToken( string token );
-	public RefreshToken GenerateRefreshToken( string ipAddress );
+	public ent.RefreshToken GenerateRefreshToken( string ipAddress );
 }
 
 public class JwtUtils : IJwtUtils
@@ -31,7 +31,7 @@ public class JwtUtils : IJwtUtils
 		_appSettings = appSettings.Value;
 	}
 
-	public string GenerateJwtToken( Account account )
+	public string GenerateJwtToken( ent.Account account )
 	{
 		// generate token that is valid for 15 minutes
 		var tokenHandler = new JwtSecurityTokenHandler();
@@ -78,9 +78,9 @@ public class JwtUtils : IJwtUtils
 		}
 	}
 
-	public RefreshToken GenerateRefreshToken( string ipAddress )
+	public ent.RefreshToken GenerateRefreshToken( string ipAddress )
 	{
-		var refreshToken = new RefreshToken
+		var refreshToken = new ent.RefreshToken
 		{
 			// token is a cryptographically strong random sequence of values
 			Token = Convert.ToHexString(RandomNumberGenerator.GetBytes(64)),

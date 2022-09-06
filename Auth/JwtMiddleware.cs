@@ -1,4 +1,4 @@
-namespace WebApi.Authorization;
+namespace auth;
 
 using Microsoft.Extensions.Options;
 using WebApi.Helpers;
