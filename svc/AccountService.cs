@@ -1,4 +1,3 @@
-using Org.BouncyCastle.Crypto.Generators;
 
 namespace svc;
 
@@ -155,11 +154,11 @@ public class AccountService : IAccountService
 		}
 
 		// map model to new account object
-		var account = _mapper.Map<Account>(model);
+		var account = _mapper.Map<ent.Account>(model);
 
 		// first registered account is an admin
 		var isFirstAccount = _context.Accounts.Count() == 0;
-		account.Role = isFirstAccount ? Role.Admin : Role.User;
+		account.Role = isFirstAccount ? ent.Role.Admin : ent.Role.User;
 		account.Created = DateTime.UtcNow;
 		account.VerificationToken = generateVerificationToken();
 

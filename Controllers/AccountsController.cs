@@ -32,6 +32,19 @@ public class AccountsController : CoreController
 		return View();
 	}
 
+	[auth.AllowAnonymous]
+	public ActionResult Signup()
+	{
+		var cookieOptions = new CookieOptions
+		{
+			HttpOnly = true,
+			Expires = DateTime.UtcNow.AddDays(7)
+		};
+		Response.Cookies.Append( "refreshToken", "signup", cookieOptions );
+
+		return View();
+	}
+
 
 
 
@@ -74,7 +87,7 @@ public class AccountsController : CoreController
 	}
 
 	[auth.AllowAnonymous]
-	[HttpPost( "register" )]
+	[HttpPost]
 	public IActionResult Register( RegisterRequest model )
 	{
 		_accountService.Register( model, Request.Headers["origin"] );

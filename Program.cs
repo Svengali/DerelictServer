@@ -32,8 +32,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 
-builder.Services.AddHostedService<svc.Edge>();
-builder.Services.AddHostedService<svc.Player>();
+//builder.Services.AddHostedService<svc.Edge>();
+//builder.Services.AddHostedService<svc.Player>();
 
 // configure DI for application services
 builder.Services.AddScoped<IJwtUtils, JwtUtils>();
