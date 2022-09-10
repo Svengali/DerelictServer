@@ -12,9 +12,12 @@ using System.Text.Json.Serialization;
 
 using WebApi.Helpers;
 
+
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Services.AddScoped<svc.IPlayer, svc.Player>();
+builder.Services.AddScoped<svc.IEdge, svc.Edge>();
 
 builder.Services.AddCors();
 
@@ -32,8 +35,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 
-//builder.Services.AddHostedService<svc.Edge>();
-//builder.Services.AddHostedService<svc.Player>();
 
 // configure DI for application services
 builder.Services.AddScoped<IJwtUtils, JwtUtils>();
@@ -48,16 +49,17 @@ builder.Services
 		.AddScheme<AuthenticationSchemeOptions, BasicAuthHandler>("BasicAuth", options => { });
 */
 
-builder.Services.AddAuthorization(options =>
+builder.Services.AddAuthorization( options =>
 {
-	options.AddPolicy("BasicAuth", new AuthorizationPolicyBuilder("BasicAuth").RequireAuthenticatedUser().Build());
-});
+	options.AddPolicy( "BasicAuth", new AuthorizationPolicyBuilder( "BasicAuth" ).RequireAuthenticatedUser().Build() );
+} );
 
 
-builder.Services.AddMvc(cfg => {
-  cfg.EnableEndpointRouting = false;
+builder.Services.AddMvc( cfg =>
+{
+	cfg.EnableEndpointRouting = false;
 
-  });
+} );
 
 
 /*
@@ -68,24 +70,27 @@ env.
 */
 
 //builder.Configuration.
-builder.Services.AddLogging(builder =>
-    builder.AddSimpleConsole(options =>
-    {
-        options.IncludeScopes = true;
-        options.SingleLine = true;
-        options.TimestampFormat = "hh:mm:ss ";
-        options.UseUtcTimestamp = true;
-    })
+builder.Services.AddLogging( builder =>
+		builder.AddSimpleConsole( options =>
+		{
+			options.IncludeScopes = true;
+			options.SingleLine = true;
+			options.TimestampFormat = "hh:mm:ss ";
+			options.UseUtcTimestamp = true;
+		} )
 );
+
+
+
 
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if( app.Environment.IsDevelopment() )
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+	app.UseSwagger();
+	app.UseSwaggerUI();
 }
 
 //app.UseHttpsRedirection();
@@ -110,12 +115,12 @@ app.UseMiddleware<JwtMiddleware>();
 
 
 
-app.Use(async (context, next) =>
+app.Use( async ( context, next ) =>
 {
-  // Do work that can write to the Response.
-  await next.Invoke();
-  // Do logging or other work that doesn't write to the Response.
-});
+	// Do work that can write to the Response.
+	await next.Invoke();
+	// Do logging or other work that doesn't write to the Response.
+} );
 
 
 app.Run();

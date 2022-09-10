@@ -1,11 +1,14 @@
 
 namespace svc;
 
+using ent;
+
 //using AutoMapper;
 //using BCrypt.Net;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
+using System.Collections.Immutable;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -25,10 +28,10 @@ public interface IAccountService
 	void ValidateResetToken( ValidateResetTokenRequest model );
 	void ResetPassword( ResetPasswordRequest model );
 	IEnumerable<AccountResponse> GetAll();
-	AccountResponse GetById( int id );
+	AccountResponse GetById( Guid id );
 	AccountResponse Create( CreateRequest model );
-	AccountResponse Update( int id, UpdateRequest model );
-	void Delete( int id );
+	AccountResponse Update( Guid id, UpdateRequest model );
+	void Delete( Guid id );
 }
 
 public class AccountService : IAccountService
@@ -38,17 +41,20 @@ public class AccountService : IAccountService
 	//private readonly IMapper _mapper;
 	private readonly AppSettings _appSettings;
 	private readonly IEmailService _emailService;
+	private readonly IPlayer _player;
 
 	public AccountService(
 			// PORT DataContext context,
 			auth.IJwtUtils jwtUtils,
 			// PORTIMapper mapper,
+			IPlayer player,
 			IOptions<AppSettings> appSettings,
 			IEmailService emailService )
 	{
 		// PORT_context = context;
 		_jwtUtils = jwtUtils;
 		// PORT_mapper = mapper;
+		_player = player;
 		_appSettings = appSettings.Value;
 		_emailService = emailService;
 	}
@@ -142,17 +148,54 @@ public class AccountService : IAccountService
 		//*/
 	}
 
-	public void Register( RegisterRequest model, string origin )
+	public async void Register( RegisterRequest model, string origin )
 	{
-		/* PORT
+		//* PORT
 		// validate
-		if( _context.Accounts.Any( x => x.Email == model.Email ) )
+
+		var playerExists = await _player.IsRegistered( model.Email );
+
+		if( playerExists == IPlayer.PlayerRes.WinPlayerRegistered )
 		{
 			// send already registered error in email to prevent account enumeration
 			sendAlreadyRegisteredEmail( model.Email, origin );
 			return;
 		}
 
+		var id = Guid.NewGuid();
+		var isFirstAccount = false; //_context.Accounts.Count() == 0;
+		var role = isFirstAccount ? ent.Role.Admin : ent.Role.User;
+		var created = DateTime.UtcNow;
+		var verificationToken = generateVerificationToken();
+
+		// hash password
+		var passwordHash = BCrypt.Net.BCrypt.HashPassword( model.Password );
+
+
+		PlayerData data = new(
+			id, 
+			model.DisplayName, 
+			model.Email, 
+			passwordHash, 
+			model.AcceptTerms, 
+			role, 
+			verificationToken, 
+			null, 
+			"", 
+			null, 
+			null, 
+			DateTime.Now, 
+			DateTime.Now,
+			ImmutableList<RefreshToken>.Empty
+		);
+
+
+		var playerRegister = await _player.Register( data );
+
+		sendVerificationEmail( data, origin );
+
+
+		/*
 		// map model to new account object
 		var account = _mapper.Map<ent.Account>(model);
 
@@ -168,9 +211,9 @@ public class AccountService : IAccountService
 		// save account
 		_context.Accounts.Add( account );
 		_context.SaveChanges();
+		*/
 
 		// send email
-		sendVerificationEmail( account, origin );
 		/*/
 		return;
 		//*/
@@ -249,7 +292,7 @@ public class AccountService : IAccountService
 		//*/
 	}
 
-	public AccountResponse GetById( int id )
+	public AccountResponse GetById( Guid id )
 	{
 		/* PORT
 		var account = getAccount(id);
@@ -284,7 +327,7 @@ public class AccountService : IAccountService
 		//*/
 	}
 
-	public AccountResponse Update( int id, UpdateRequest model )
+	public AccountResponse Update( Guid id, UpdateRequest model )
 	{
 		/* PORT
 		var account = getAccount(id);
@@ -309,7 +352,7 @@ public class AccountService : IAccountService
 		//*/
 	}
 
-	public void Delete( int id )
+	public void Delete( Guid id )
 	{
 		/* PORT
 		var account = getAccount(id);
@@ -322,7 +365,7 @@ public class AccountService : IAccountService
 
 	// helper methods
 
-	private ent.Account getAccount( int id )
+	private ent.Account getAccount( Guid id )
 	{
 		/* PORT
 		var account = _context.Accounts.Find(id);
@@ -453,9 +496,9 @@ public class AccountService : IAccountService
 		//*/
 	}
 
-	private void sendVerificationEmail( ent.Account account, string origin )
+	private void sendVerificationEmail( PlayerData account, string origin )
 	{
-		/* PORT
+		//* PORT
 		string message;
 		if( !string.IsNullOrEmpty( origin ) )
 		{

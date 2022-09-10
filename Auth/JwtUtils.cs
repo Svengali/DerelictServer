@@ -13,7 +13,7 @@ using WebApi.Helpers;
 
 public interface IJwtUtils
 {
-	public string GenerateJwtToken( ent.Account account );
+	public string GenerateJwtToken( svc.PlayerData account );
 	public int? ValidateJwtToken( string token );
 	public ent.RefreshToken GenerateRefreshToken( string ipAddress );
 }
@@ -31,14 +31,14 @@ public class JwtUtils : IJwtUtils
 		_appSettings = appSettings.Value;
 	}
 
-	public string GenerateJwtToken( ent.Account account )
+	public string GenerateJwtToken( svc.PlayerData data )
 	{
 		// generate token that is valid for 15 minutes
 		var tokenHandler = new JwtSecurityTokenHandler();
 		var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
 		var tokenDescriptor = new SecurityTokenDescriptor
 		{
-			Subject = new ClaimsIdentity(new[] { new Claim("id", account.Id.ToString()) }),
+			Subject = new ClaimsIdentity(new[] { new Claim("id", data.Id.ToString()) }),
 			Expires = DateTime.UtcNow.AddMinutes(15),
 			SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
 		};
