@@ -189,10 +189,13 @@ public class AccountService : IAccountService
 			ImmutableList<RefreshToken>.Empty
 		);
 
-
 		var playerRegister = await _player.Register( data );
 
-		sendVerificationEmail( data, origin );
+		var tokenToPlayer = new svc.TokenToPlayer( verificationToken, model.Email );
+
+		svc.Data.Save( tokenToPlayer, verificationToken );
+
+		sendVerificationEmail( data, origin, verificationToken );
 
 
 		/*
@@ -221,6 +224,9 @@ public class AccountService : IAccountService
 
 	public void VerifyEmail( string token )
 	{
+		svc.Data.Load( token, out TokenToPlayer tokenToPlayer );
+
+
 		/* PORT
 		var account = _context.Accounts.SingleOrDefault(x => x.VerificationToken == token);
 
@@ -438,7 +444,7 @@ public class AccountService : IAccountService
 	{
 		/* PORT
 		// token is a cryptographically strong random sequence of values
-		var token = Convert.ToHexString(RandomNumberGenerator.GetBytes(64));
+		//var token = Convert.ToHexString(RandomNumberGenerator.GetBytes(64));
 
 		// ensure token is unique by checking against db
 		var tokenIsUnique = !_context.Accounts.Any(x => x.VerificationToken == token);
@@ -447,13 +453,14 @@ public class AccountService : IAccountService
 
 		return token;
 		/*/
-		return null;
+		var token = Guid.NewGuid();
+		return token.ToString();
 		//*/
 	}
 
 	private ent.RefreshToken rotateRefreshToken( ent.RefreshToken refreshToken, string ipAddress )
 	{
-		/* PORT
+		//* PORT
 		var newRefreshToken = _jwtUtils.GenerateRefreshToken(ipAddress);
 		revokeRefreshToken( refreshToken, ipAddress, "Replaced by new token", newRefreshToken.Token );
 		return newRefreshToken;
@@ -465,6 +472,7 @@ public class AccountService : IAccountService
 		account.RefreshTokens.RemoveAll( x =>
 				!x.IsActive &&
 				x.Created.AddDays( _appSettings.RefreshTokenTTL ) <= DateTime.UtcNow );
+		//*/
 	}
 
 	private void revokeDescendantRefreshTokens( ent.RefreshToken refreshToken, ent.Account account, string ipAddress, string reason )
@@ -480,13 +488,13 @@ public class AccountService : IAccountService
 				revokeDescendantRefreshTokens( childToken, account, ipAddress, reason );
 		}
 		/*/
-		return null;
+		return;
 		//*/
 	}
 
 	private void revokeRefreshToken( ent.RefreshToken token, string ipAddress, string reason = null, string replacedByToken = null )
 	{
-		/* PORT
+		//* PORT
 		token.Revoked = DateTime.UtcNow;
 		token.RevokedByIp = ipAddress;
 		token.ReasonRevoked = reason;
@@ -496,7 +504,7 @@ public class AccountService : IAccountService
 		//*/
 	}
 
-	private void sendVerificationEmail( PlayerData account, string origin )
+	private void sendVerificationEmail( PlayerData account, string origin, string verificationToken )
 	{
 		//* PORT
 		string message;
@@ -504,7 +512,7 @@ public class AccountService : IAccountService
 		{
 			// origin exists if request sent from browser single page app (e.g. Angular or React)
 			// so send link to verify via single page app
-			var verifyUrl = $"{origin}/account/verify-email?token={account.VerificationToken}";
+			var verifyUrl = $"{origin}/account/verify-email?token={verificationToken}";
 			message = $@"<p>Please click the below link to verify your email address:</p>
                             <p><a href=""{verifyUrl}"">{verifyUrl}</a></p>";
 		}
@@ -513,7 +521,7 @@ public class AccountService : IAccountService
 			// origin missing if request sent directly to api (e.g. from Postman)
 			// so send instructions to verify directly with api
 			message = $@"<p>Please use the below token to verify your email address with the <code>/accounts/verify-email</code> api route:</p>
-                            <p><code>{account.VerificationToken}</code></p>";
+                            <p><code>{verificationToken}</code></p>";
 		}
 
 		_emailService.Send(
@@ -530,7 +538,7 @@ public class AccountService : IAccountService
 
 	private void sendAlreadyRegisteredEmail( string email, string origin )
 	{
-		/* PORT
+		//* PORT
 		string message;
 		if( !string.IsNullOrEmpty( origin ) )
 			message = $@"<p>If you don't know your password please visit the <a href=""{origin}/account/forgot-password"">forgot password</a> page.</p>";
@@ -549,9 +557,9 @@ public class AccountService : IAccountService
 		//*/
 	}
 
-	private void sendPasswordResetEmail( ent.Account account, string origin )
+	private void sendPasswordResetEmail( PlayerData account, string origin )
 	{
-		/* PORT
+		//* PORT
 		string message;
 		if( !string.IsNullOrEmpty( origin ) )
 		{

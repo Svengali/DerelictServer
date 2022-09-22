@@ -4,6 +4,7 @@ using lib;
 
 using MailKit.Security;
 
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -12,11 +13,79 @@ using Org.BouncyCastle.Crypto;
 
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Text;
 using System.Text.Json;
 
 using static svc.IPlayer;
 
+
+
 namespace svc;
+
+
+static public class Data<T>
+{
+	static public string BaseDir = "bad";
+
+	static public string GetFilename( string key )
+	{
+		return $"{BaseDir}/{key}.json";
+	}
+
+	static public void Save( T data, string key )
+	{
+		JsonOptions options = new JsonOptions();
+		options.SerializerOptions.WriteIndented = true;
+
+		string file = GetFilename( key );
+
+		using FileStream createStream = File.Create( file );
+
+		var jsonStr = JsonSerializer.Serialize( data );
+
+		createStream.WriteAsync( Encoding.UTF8.GetBytes( jsonStr ) );
+
+		//JsonSerializer.SerializeAsync( createStream, data );
+
+		createStream.DisposeAsync();
+	}
+
+	static public T? Load( string key )
+	{
+		string file = GetFilename( key );
+
+		var stream = File.OpenRead( file );
+
+		string jsonString = File.ReadAllText( file );
+
+		T? data = JsonSerializer.Deserialize<T>(jsonString);
+
+		return data;
+	}
+
+	static public void Load( string key, out T? data )
+	{
+		data = Load( key );
+	}
+
+
+}
+
+static public class Data
+{
+
+	static public void Save<T>( T data, string key )
+	{
+		Data<T>.Save( data, key );
+	}
+
+	static public void Load<T>( string key, out T? data )
+	{
+		data = Data<T>.Load( key );
+	}
+
+}
+
 
 public interface IPlayer : IHostedService
 {
@@ -41,6 +110,8 @@ public interface IPlayer : IHostedService
 	Task<PlayerRes> Login( string username, string password );
 	Task<PlayerRes> Logout( string username );
 
+	Task<PlayerData?> Get( string email );
+	Task<PlayerRes> Update( PlayerData newPlayerData );
 }
 
 public record PlayerData(
@@ -62,6 +133,7 @@ public record PlayerData(
 )
 {
 
+
 	bool IsVerified => Verified.HasValue || PasswordResetAt.HasValue;
 
 	public bool OwnsToken( string token )
@@ -70,15 +142,23 @@ public record PlayerData(
 	}
 };
 
+public record TokenToPlayer(
+	string Token,
+	string PlayerId
+);
+
+/*
 public record PlayerInfo(
 	PlayerData Data,
 	DateTime LoggedInAt,
 	DateTime LastActivityAt
 );
+*/
 
 public class PlayerSettings : svc.Settings
 {
-	public string PlayerDir = "./db/players/";
+	public string PlayerDir = "./run/db/players/";
+	public string TokenDir  = "./run/db/tokens/";
 
 }
 
@@ -100,6 +180,7 @@ public class Player : svc.Service<Player, PlayerSettings>, IPlayer
 
 	protected override Task<Result> Run( CancellationToken stoppingToken )
 	{
+		// Currently unused
 		while( true )
 		{
 
@@ -116,27 +197,12 @@ public class Player : svc.Service<Player, PlayerSettings>, IPlayer
 
 	public Task<PlayerRes> IsRegistered( string email )
 	{
-		string playerFile = GetFilenameFromPlayer( email );
+		string playerFile = Data<PlayerData>.GetFilename( email );
 
 		if( File.Exists( playerFile ) )
 		{
-			/*
-			lib.XmlFormatter2 xml = new();
-
-			var stream = File.OpenRead(playerFile);
-
-			var data = xml.Deserialize<PlayerData>( stream );
-			/*/
-			var stream = File.OpenRead(playerFile);
-
-			string jsonString = File.ReadAllText(playerFile);
-
-			PlayerData? data =
-								JsonSerializer.Deserialize<PlayerData>(jsonString);
-			//*/
-
-
-
+			
+			//Data.Load( email, out PlayerData data );
 
 			return Task.FromResult( PlayerRes.WinPlayerRegistered );
 		}
@@ -144,16 +210,11 @@ public class Player : svc.Service<Player, PlayerSettings>, IPlayer
 		return Task.FromResult( PlayerRes.ErrPlayerNotFound );
 	}
 
-	private string GetFilenameFromPlayer( string email )
-	{
-		return $"{Settings.Value.PlayerDir}/{email}.json";
-	}
-
 	public Task<PlayerRes> Register( PlayerData data )
 	{
 		Log.LogInformation( $"Register: {data.Email} Attempting to login" );
 
-		string playerFile = GetFilenameFromPlayer( data.Email );
+		string playerFile = Data<PlayerData>.GetFilename( data.Email );
 
 		if( File.Exists( playerFile ) )
 		{
@@ -162,19 +223,7 @@ public class Player : svc.Service<Player, PlayerSettings>, IPlayer
 			return Task.FromResult( PlayerRes.ErrPlayerAlreadyExists );
 		}
 
-		/*
-		lib.XmlFormatter2 xml = new();
-
-		var stream = File.OpenWrite(playerFile);
-
-		xml.Serialize( stream, data );
-		/*/
-		using FileStream createStream = File.Create(playerFile);
-		JsonSerializer.SerializeAsync( createStream, data );
-		createStream.DisposeAsync();
-
-		//*/
-
+		Data.Save( data, data.Email );
 
 		return Task.FromResult( PlayerRes.ErrPlayerAlreadyExists );
 	}
@@ -185,7 +234,7 @@ public class Player : svc.Service<Player, PlayerSettings>, IPlayer
 	{
 		Log.LogInformation( $"Login: {username} Attempting to login" );
 
-		string playerFile = GetFilenameFromPlayer( username );
+		string playerFile = Data<PlayerData>.GetFilename( username );
 
 		if( !File.Exists( playerFile ) )
 		{
@@ -193,24 +242,14 @@ public class Player : svc.Service<Player, PlayerSettings>, IPlayer
 			return Task.FromResult( PlayerRes.ErrPlayerNotFound );
 		}
 
-		/*
-		lib.XmlFormatter2 xml = new();
+		Data.Load( username, out PlayerData data );
 
-		var stream = File.OpenRead(playerFile);
 
-		var data = xml.Deserialize<PlayerData>( stream );
-		/*/
-		var stream = File.OpenRead(playerFile);
+		//var info = new PlayerInfo(data, DateTime.Now, DateTime.Now);
 
-		string jsonString = File.ReadAllText(playerFile);
+		//var added = _players.TryAdd(username, info);
 
-		PlayerData? data =
-								JsonSerializer.Deserialize<PlayerData>(jsonString);
-		//*/
-
-		var info = new PlayerInfo(data, DateTime.Now, DateTime.Now);
-
-		var added = _players.TryAdd(username, info);
+		//Imm.Up
 
 		if( added )
 		{
@@ -229,6 +268,22 @@ public class Player : svc.Service<Player, PlayerSettings>, IPlayer
 		return Task.FromResult( PlayerRes.WinPlayerLoggedOut );
 	}
 
-	private ConcurrentDictionary<string, PlayerInfo> _players = new();
+	public Task<PlayerData?> Get( string email )
+	{
+		var found = _players.TryGetValue( email, out var playerInfo );
+
+
+	}
+
+	public Task<PlayerRes> Update( PlayerData newPlayerData )
+	{
+		throw new NotImplementedException();
+	}
+
+	//private ConcurrentDictionary<string, PlayerInfo> _players = new();
+
+	private ImmutableDictionary<string, DateTime> _login;
+	private ImmutableDictionary<string, DateTime> _logout;
+
 
 }
