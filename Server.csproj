@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\temp\Terminal.Gui\Terminal.Gui\Terminal.Gui.csproj" />
     <ProjectReference Include="..\..\libs\CommonLibs\NetCore\NetCore.csproj" />
+    <ProjectReference Include="..\..\libs\FluentResults\src\FluentResults\FluentResults.csproj" />
     <ProjectReference Include="..\DerelictLib\DerelictLib.csproj" />
   </ItemGroup>
 

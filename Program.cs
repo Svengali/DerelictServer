@@ -15,6 +15,10 @@ using System.Text.Json.Serialization;
 
 using WebApi.Helpers;
 
+//using System.Windows.Forms;
+
+
+//Task.Run( () => Application.Run( new Form1() ) );
 
 
 var builder = WebApplication.CreateBuilder(args);

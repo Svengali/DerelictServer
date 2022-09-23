@@ -242,7 +242,7 @@ public class Player : svc.Service<Player, PlayerSettings>, IPlayer
 			return Task.FromResult( PlayerRes.ErrPlayerNotFound );
 		}
 
-		Data.Load( username, out PlayerData data );
+		Data.Load( username, out PlayerData? data );
 
 
 		//var info = new PlayerInfo(data, DateTime.Now, DateTime.Now);
@@ -251,7 +251,7 @@ public class Player : svc.Service<Player, PlayerSettings>, IPlayer
 
 		//Imm.Up
 
-		if( added )
+		if( data != null )
 		{
 			Log.LogInformation( $"Login: {username} Login Succeeded" );
 			return Task.FromResult( PlayerRes.WinPlayerLoggedIn );
@@ -270,8 +270,11 @@ public class Player : svc.Service<Player, PlayerSettings>, IPlayer
 
 	public Task<PlayerData?> Get( string email )
 	{
-		var found = _players.TryGetValue( email, out var playerInfo );
+		Data.Load( email, out PlayerData? data );
 
+		//var found = _players.TryGetValue( email, out var playerInfo );
+
+		return Task.FromResult( data );
 
 	}
 
