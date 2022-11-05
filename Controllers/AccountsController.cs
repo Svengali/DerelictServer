@@ -51,7 +51,7 @@ public class AccountsController : CoreController
 
 
 	[auth.AllowAnonymous]
-	[HttpPost( "authenticate" )]
+	[HttpPost]
 	public ActionResult<AuthenticateResponse> Authenticate( AuthenticateRequest model )
 	{
 		var response = _accountService.Authenticate(model, ipAddress());
@@ -60,7 +60,7 @@ public class AccountsController : CoreController
 	}
 
 	[auth.AllowAnonymous]
-	[HttpPost( "refresh-token" )]
+	[HttpPost]
 	public ActionResult<AuthenticateResponse> RefreshToken()
 	{
 		var refreshToken = Request.Cookies["refreshToken"];
@@ -69,7 +69,7 @@ public class AccountsController : CoreController
 		return Ok( response );
 	}
 
-	[HttpPost( "revoke-token" )]
+	[HttpPost]
 	public IActionResult RevokeToken( RevokeTokenRequest model )
 	{
 		// accept token from request body or cookie
@@ -95,7 +95,6 @@ public class AccountsController : CoreController
 	}
 
 	[auth.AllowAnonymous]
-	[HttpPost( "verify-email" )]
 	public IActionResult VerifyEmail( VerifyEmailRequest model )
 	{
 		_accountService.VerifyEmail( model.Token );
@@ -103,7 +102,7 @@ public class AccountsController : CoreController
 	}
 
 	[auth.AllowAnonymous]
-	[HttpPost( "forgot-password" )]
+	[HttpPost]
 	public IActionResult ForgotPassword( ForgotPasswordRequest model )
 	{
 		_accountService.ForgotPassword( model, Request.Headers["origin"] );
@@ -111,7 +110,7 @@ public class AccountsController : CoreController
 	}
 
 	[auth.AllowAnonymous]
-	[HttpPost( "validate-reset-token" )]
+	[HttpPost]
 	public IActionResult ValidateResetToken( ValidateResetTokenRequest model )
 	{
 		_accountService.ValidateResetToken( model );
@@ -119,7 +118,7 @@ public class AccountsController : CoreController
 	}
 
 	[auth.AllowAnonymous]
-	[HttpPost( "reset-password" )]
+	[HttpPost]
 	public IActionResult ResetPassword( ResetPasswordRequest model )
 	{
 		_accountService.ResetPassword( model );

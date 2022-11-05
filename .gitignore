@@ -9,6 +9,9 @@ run/server/templates/
 run/client/logs/
 run/client/save/
 run/client/templates/
+run/db/
+
+
 *.pem
 
 

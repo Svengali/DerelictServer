@@ -5,6 +5,7 @@ global using Imm = System.Collections.Immutable.ImmutableInterlocked;
 
 using auth;
 
+using lib;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -139,6 +140,9 @@ var playerSettings = app.Configuration.Get<svc.PlayerSettings>();
 
 svc.Data<svc.PlayerData>.BaseDir = playerSettings.PlayerDir;
 svc.Data<svc.TokenToPlayer>.BaseDir = playerSettings.TokenDir;
+
+Util.checkAndAddDirectory( playerSettings.PlayerDir );
+Util.checkAndAddDirectory( playerSettings.TokenDir );
 
 //Keeping this as a sleep loop 
 while( !appTask.IsCompleted )
