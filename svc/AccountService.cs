@@ -41,13 +41,13 @@ public class AccountService : IAccountService
 	//private readonly IMapper _mapper;
 	private readonly AppSettings _appSettings;
 	private readonly IEmailService _emailService;
-	private readonly IPlayer _player;
+	private readonly IUser _player;
 
 	public AccountService(
 			// PORT DataContext context,
 			auth.IJwtUtils jwtUtils,
 			// PORTIMapper mapper,
-			IPlayer player,
+			IUser player,
 			IOptions<AppSettings> appSettings,
 			IEmailService emailService )
 	{
@@ -155,7 +155,7 @@ public class AccountService : IAccountService
 
 		var playerExists = await _player.IsRegistered( model.Email );
 
-		if( playerExists == IPlayer.PlayerRes.WinPlayerRegistered )
+		if( playerExists == IUser.UserRes.WinUserRegistered )
 		{
 			// send already registered error in email to prevent account enumeration
 			sendAlreadyRegisteredEmail( model.Email, origin );
@@ -172,7 +172,7 @@ public class AccountService : IAccountService
 		var passwordHash = BCrypt.Net.BCrypt.HashPassword( model.Password );
 
 
-		PlayerData data = new(
+		UserData data = new(
 			id, 
 			model.DisplayName, 
 			model.Email, 
@@ -191,7 +191,7 @@ public class AccountService : IAccountService
 
 		var playerRegister = await _player.Register( data );
 
-		var tokenToPlayer = new svc.TokenToPlayer( verificationToken, model.Email );
+		var tokenToPlayer = new svc.TokenToUser( verificationToken, model.Email );
 
 		svc.Data.Save( tokenToPlayer, verificationToken );
 
@@ -224,12 +224,12 @@ public class AccountService : IAccountService
 
 	public void VerifyEmail( string token )
 	{
-		svc.Data.Load( token, out TokenToPlayer tokenToPlayer );
+		svc.Data.Load( token, out TokenToUser tokenToPlayer );
 
 
 		//* PORT
 
-		svc.Data.Load( tokenToPlayer.PlayerId, out PlayerData player );
+		svc.Data.Load( tokenToPlayer.UserId, out UserData player );
 
 		//var account = _context.Accounts.SingleOrDefault(x => x.VerificationToken == token);
 
@@ -238,7 +238,7 @@ public class AccountService : IAccountService
 
 		player = player with { Verified = DateTime.UtcNow, VerificationToken = null };
 
-		svc.Data.Save( player, tokenToPlayer.PlayerId );
+		svc.Data.Save( player, tokenToPlayer.UserId );
 		/*/
 		return;
 		//*/
@@ -505,7 +505,7 @@ public class AccountService : IAccountService
 		//*/
 	}
 
-	private void sendVerificationEmail( PlayerData account, string origin, string verificationToken )
+	private void sendVerificationEmail( UserData account, string origin, string verificationToken )
 	{
 		//* PORT
 		string message;
@@ -558,7 +558,7 @@ public class AccountService : IAccountService
 		//*/
 	}
 
-	private void sendPasswordResetEmail( PlayerData account, string origin )
+	private void sendPasswordResetEmail( UserData account, string origin )
 	{
 		//* PORT
 		string message;

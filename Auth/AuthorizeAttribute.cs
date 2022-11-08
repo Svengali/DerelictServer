@@ -21,7 +21,7 @@ public class AuthorizeAttribute : Attribute, IAuthorizationFilter
             return;
 
         // authorization
-        var account = (svc.PlayerData)context.HttpContext.Items["Account"];
+        var account = (svc.UserData)context.HttpContext.Items["Account"];
         if (account == null || (_roles.Any() && !_roles.Contains(account.Role)))
         {
             // not logged in or role not authorized

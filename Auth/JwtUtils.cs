@@ -13,7 +13,7 @@ using WebApi.Helpers;
 
 public interface IJwtUtils
 {
-	public string GenerateJwtToken( svc.PlayerData account );
+	public string GenerateJwtToken( svc.UserData account );
 	public int? ValidateJwtToken( string token );
 	public ent.RefreshToken GenerateRefreshToken( string ipAddress );
 }
@@ -31,7 +31,7 @@ public class JwtUtils : IJwtUtils
 		_appSettings = appSettings.Value;
 	}
 
-	public string GenerateJwtToken( svc.PlayerData data )
+	public string GenerateJwtToken( svc.UserData data )
 	{
 		// generate token that is valid for 15 minutes
 		var tokenHandler = new JwtSecurityTokenHandler();

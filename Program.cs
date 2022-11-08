@@ -24,7 +24,7 @@ using WebApi.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton<svc.IPlayer, svc.Player>();
+builder.Services.AddSingleton<svc.IUser, svc.User>();
 builder.Services.AddSingleton<svc.IEdge, svc.Edge>();
 
 builder.Services.AddCors();
@@ -58,8 +58,7 @@ builder.Services
 		.AddScheme<AuthenticationSchemeOptions, BasicAuthHandler>("BasicAuth", options => { });
 */
 
-builder.Services.AddAuthorization( options =>
-{
+builder.Services.AddAuthorization( options => {
 	options.AddPolicy( "BasicAuth", new AuthorizationPolicyBuilder( "BasicAuth" ).RequireAuthenticatedUser().Build() );
 } );
 
@@ -134,15 +133,24 @@ app.Use( async ( context, next ) =>
 var appTask = app.RunAsync();
 
 
-var configSection = app.Configuration.GetSection("PlayerSettings");
+var configSection = app.Configuration.GetSection("UserSettings");
 
-var playerSettings = app.Configuration.Get<svc.PlayerSettings>();
+var playerSettings = app.Configuration.Get<svc.UserSettings>();
 
-svc.Data<svc.PlayerData>.BaseDir = playerSettings.PlayerDir;
-svc.Data<svc.TokenToPlayer>.BaseDir = playerSettings.TokenDir;
+svc.Data<svc.UserData>.BaseDir = playerSettings.UserDir;
+svc.Data<svc.TokenToUser>.BaseDir = playerSettings.TokenDir;
 
-Util.checkAndAddDirectory( playerSettings.PlayerDir );
+svc.Data<svc.UserData>.BackupBaseDir = playerSettings.UserBackupDir;
+svc.Data<svc.TokenToUser>.BackupBaseDir = playerSettings.TokenBackupDir;
+
+svc.Data<svc.UserData>.FnKey = ( d ) => d.Email;
+svc.Data<svc.TokenToUser>.FnKey = ( d ) => d.UserId;
+
+Util.checkAndAddDirectory( playerSettings.UserDir );
 Util.checkAndAddDirectory( playerSettings.TokenDir );
+
+Util.checkAndAddDirectory( playerSettings.UserBackupDir );
+Util.checkAndAddDirectory( playerSettings.TokenBackupDir );
 
 //Keeping this as a sleep loop 
 while( !appTask.IsCompleted )
