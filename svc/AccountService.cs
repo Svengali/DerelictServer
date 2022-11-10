@@ -493,13 +493,13 @@ public class AccountService : IAccountService
 		//*/
 	}
 
-	private void revokeRefreshToken( ent.RefreshToken token, string ipAddress, string reason = null, string replacedByToken = null )
+	private void revokeRefreshToken( ent.RefreshToken token, string ipAddress, string? reason = null, string? replacedByToken = null )
 	{
 		//* PORT
 		token.Revoked = DateTime.UtcNow;
 		token.RevokedByIp = ipAddress;
-		token.ReasonRevoked = reason;
-		token.ReplacedByToken = replacedByToken;
+		token.ReasonRevoked = reason ?? "no reasons passed into revokeRefreshToken";
+		token.ReplacedByToken = replacedByToken ?? "UNKNOWN";
 		/*/
 		return;
 		//*/

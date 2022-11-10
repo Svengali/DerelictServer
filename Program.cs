@@ -135,22 +135,22 @@ var appTask = app.RunAsync();
 
 var configSection = app.Configuration.GetSection("UserSettings");
 
-var playerSettings = app.Configuration.Get<svc.UserSettings>();
+var userSettings = app.Configuration.Get<svc.UserSettings>();
 
-svc.Data<svc.UserData>.BaseDir = playerSettings.UserDir;
-svc.Data<svc.TokenToUser>.BaseDir = playerSettings.TokenDir;
+svc.Data<svc.UserData>.BaseDir = userSettings.UserDir;
+svc.Data<svc.TokenToUser>.BaseDir = userSettings.TokenDir;
 
-svc.Data<svc.UserData>.BackupBaseDir = playerSettings.UserBackupDir;
-svc.Data<svc.TokenToUser>.BackupBaseDir = playerSettings.TokenBackupDir;
+svc.Data<svc.UserData>.BackupBaseDir = userSettings.UserBackupDir;
+svc.Data<svc.TokenToUser>.BackupBaseDir = userSettings.TokenBackupDir;
 
 svc.Data<svc.UserData>.FnKey = ( d ) => d.Email;
 svc.Data<svc.TokenToUser>.FnKey = ( d ) => d.UserId;
 
-Util.checkAndAddDirectory( playerSettings.UserDir );
-Util.checkAndAddDirectory( playerSettings.TokenDir );
+Util.checkAndAddDirectory( userSettings.UserDir );
+Util.checkAndAddDirectory( userSettings.TokenDir );
 
-Util.checkAndAddDirectory( playerSettings.UserBackupDir );
-Util.checkAndAddDirectory( playerSettings.TokenBackupDir );
+Util.checkAndAddDirectory( userSettings.UserBackupDir );
+Util.checkAndAddDirectory( userSettings.TokenBackupDir );
 
 //Keeping this as a sleep loop 
 while( !appTask.IsCompleted )
